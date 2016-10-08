@@ -74,6 +74,10 @@ class Route
 
             $res->write('OK');
             return $res;
-        });
+				});
+
+				$app->get('/hello/{name}', function ($request, $response, $args) {
+						$response->getBody()->write('Hello, ' . $args['name']);
+				});						
     }
 }
