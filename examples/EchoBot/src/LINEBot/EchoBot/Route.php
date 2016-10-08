@@ -22,6 +22,7 @@ use LINE\LINEBot;
 use LINE\LINEBot\Constant\HTTPHeader;
 use LINE\LINEBot\Event\MessageEvent;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
+use LINE\LINEBot\Event\BeaconDetectionEvent;
 use LINE\LINEBot\Exception\InvalidEventRequestException;
 use LINE\LINEBot\Exception\InvalidSignatureException;
 use LINE\LINEBot\Exception\UnknownEventTypeException;
@@ -56,17 +57,22 @@ class Route
             }
 
             foreach ($events as $event) {
-                if (!($event instanceof MessageEvent)) {
+                $replyText = '';
+                if ($event instanceof BeaconDetectionEvent) {
+                    $replyText = 'Beacon: Welcome!';
+                }
+                else if (!($event instanceof MessageEvent)) {
                     $logger->info('Non message event has come');
                     continue;
                 }
-
-                if (!($event instanceof TextMessage)) {
+                else if (!($event instanceof TextMessage)) {
                     $logger->info('Non text message has come');
                     continue;
                 }
+                else if ($event instanceof TextMessage) {
+                    $replyText = $event->getText();                    
+                }
 
-                $replyText = $event->getText();
                 $logger->info('Reply text: ' . $replyText);
                 $resp = $bot->replyText($event->getReplyToken(), $replyText);
                 $logger->info($resp->getHTTPStatus() . ': ' . $resp->getRawBody());
@@ -74,10 +80,10 @@ class Route
 
             $res->write('OK');
             return $res;
-				});
+		});
 
-				$app->get('/hello/{name}', function ($request, $response, $args) {
-						$response->getBody()->write('Hello, ' . $args['name']);
-				});						
+		$app->get('/hello/{name}', function ($request, $response, $args) {
+		      $response->getBody()->write('Hello, ' . $args['name']);
+		});						
     }
 }
